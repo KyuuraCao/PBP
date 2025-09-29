@@ -1,5 +1,9 @@
 -Extract this file
+
+
 -Dont forget to migrate the databases using "php artisan migrate"
+
+
 -Run the program with "php artisan serve"
 
 
