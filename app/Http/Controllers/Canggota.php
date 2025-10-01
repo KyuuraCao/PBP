@@ -10,13 +10,33 @@ class Canggota extends Controller
     public function index()
     {
         $data = Manggota::all();
-        return view('anggota.index', compact('data'));
+        $nextIdAnggota = $this->generateIdAnggota();
+        return view('anggota.index', compact('data', 'nextIdAnggota'));
+    }
+
+    private function generateIdAnggota()
+    {
+        // Format: A-YYYYMMDD-XXX (contoh: A-20251001-001)
+        $prefix = 'A-';
+        $today = date('Ymd');
+        
+        $lastAnggota = Manggota::where('id_anggota', 'LIKE', $prefix . $today . '%')
+                               ->orderBy('id_anggota', 'desc')
+                               ->first();
+        
+        if ($lastAnggota) {
+            $lastNumber = intval(substr($lastAnggota->id_anggota, -3));
+            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '001';
+        }
+        
+        return $prefix . $today . '-' . $newNumber;
     }
 
     public function save(Request $request)
     {
-        // Cek apakah user adalah admin
-        if (!auth()->check() || auth()->user()->level === 'admin') {
+        if (!auth()->check() || auth()->user()->level !== 'admin') {
             return redirect()->route('anggota.index')->with('status', [
                 'judul' => 'Gagal', 
                 'pesan' => 'Anda tidak memiliki akses untuk menambah data', 
@@ -27,7 +47,10 @@ class Canggota extends Controller
         $request->validate([
             'id_anggota' => 'required|unique:anggota,id_anggota',
             'nama' => 'required',
-            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+            'jenis_kelamin' => 'required',
+            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'email' => 'nullable|email',
+            'nomor_hp' => 'nullable|numeric'
         ]);
 
         $filename = null;
@@ -40,6 +63,16 @@ class Canggota extends Controller
         Manggota::create([
             'id_anggota' => $request->id_anggota,
             'nama' => $request->nama,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'alamat' => $request->alamat,
+            'nomor_hp' => $request->nomor_hp,
+            'email' => $request->email,
+            'status' => $request->status ?? 'Aktif',
+            'pendidikan_terakhir' => $request->pendidikan_terakhir,
+            'pekerjaan' => $request->pekerjaan,
+            'instansi' => $request->instansi,
+            'tanggal_daftar' => $request->tanggal_daftar,
+            'berlaku_hingga' => $request->berlaku_hingga,
             'foto' => $filename
         ]);
 
@@ -52,8 +85,7 @@ class Canggota extends Controller
 
     public function update(Request $request, $id)
     {
-        // Cek apakah user adalah admin
-        if (!auth()->check() || auth()->user()->level != 'admin') {
+        if (!auth()->check() || auth()->user()->level !== 'admin') {
             return redirect()->route('anggota.index')->with('status', [
                 'judul' => 'Gagal', 
                 'pesan' => 'Anda tidak memiliki akses untuk mengubah data', 
@@ -66,7 +98,10 @@ class Canggota extends Controller
         $request->validate([
             'id_anggota' => 'required|unique:anggota,id_anggota,' . $id,
             'nama' => 'required',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
+            'jenis_kelamin' => 'required',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'email' => 'nullable|email',
+            'nomor_hp' => 'nullable|numeric'
         ]);
 
         $filename = $anggota->foto;
@@ -84,6 +119,16 @@ class Canggota extends Controller
         $anggota->update([
             'id_anggota' => $request->id_anggota,
             'nama' => $request->nama,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'alamat' => $request->alamat,
+            'nomor_hp' => $request->nomor_hp,
+            'email' => $request->email,
+            'status' => $request->status ?? 'Aktif',
+            'pendidikan_terakhir' => $request->pendidikan_terakhir,
+            'pekerjaan' => $request->pekerjaan,
+            'instansi' => $request->instansi,
+            'tanggal_daftar' => $request->tanggal_daftar,
+            'berlaku_hingga' => $request->berlaku_hingga,
             'foto' => $filename
         ]);
 
@@ -96,8 +141,7 @@ class Canggota extends Controller
 
     public function destroy($id)
     {
-        // Cek apakah user adalah admin
-        if (!auth()->check() || auth()->user()->level != 'admin') {
+        if (!auth()->check() || auth()->user()->level !== 'admin') {
             return redirect()->route('anggota.index')->with('status', [
                 'judul' => 'Gagal', 
                 'pesan' => 'Anda tidak memiliki akses untuk menghapus data', 
