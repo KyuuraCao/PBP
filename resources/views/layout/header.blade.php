@@ -86,10 +86,24 @@
           @endauth
 
 
-           <li class="nav-item">
+              <li class="nav-item">
                     <a href="{{ route('anggota.index')}}" class="nav-link">
                         <i class="fas fa-user"></i>
                         <p>Anggota</p>
+                    </a>
+                </li>
+
+                  <li class="nav-item">
+                    <a href="{{ route('buku.index')}}" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <p>Data Buku</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('kategori.index')}}" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <p>Kategori</p>
                     </a>
                 </li>
              <li class="nav-item">

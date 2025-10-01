@@ -13,55 +13,121 @@
           @endif
         @endauth
 
-	<div class="table-responsive">
-		<table class="table table-sm table-bordered">
-			<thead>
-				<tr>
-             	<th>No</th>
-               	<th>Foto</th>
-               	<th>No Anggota</th>
-               	<th>Nama Lengkap</th>
-               	<th>Pekerjaan/Instansi</th>
-               	<th>Alamat</th>
-                @auth
-                    @if(auth()->user()->level === 'admin')
-               	<th>Aksi</th>
-                    @endif
-                @endauth
-          		</tr>
-         	</thead>
-          	<tbody>
-          		@foreach($data as $d)
-            	<tr>
-            		<td>{{ $loop->iteration }}</td>
-               	<td>
-                    @if($d->foto)
-                        <a href="#" data-toggle="modal" data-target="#viewDetail{{ $d->id_anggota }}">
-                            <img src="{{ asset('uploads/foto/'.$d->foto) }}" width="50px" height="50px" alt="Foto" style="cursor: pointer; object-fit: cover; border-radius: 4px;">
-                        </a>
-                    @else
-                        <div style="width: 50px; height: 50px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-                            <i class="fa fa-user"></i>
-                        </div>
-                    @endif
-                </td>
-               	<td>{{ $d->id_anggota }}</td>
-               	<td>{{ $d->nama }}</td>
-               	<td>{{ ($d->pekerjaan ?? '-') . ($d->instansi ? '/' . $d->instansi : '') }}</td>
-               	<td>{{ $d->alamat ?? '-' }}</td>
-                @auth
-                    @if(auth()->user()->level === 'admin')
-            		<td>
-               		    <button type="button" class="btn btn-success btn-sm" title="Edit data" data-toggle="modal" data-target="#edit{{ $d->id }}"><i class="fa fa-edit"></i></button>
-                        <button type="button" class="btn btn-danger btn-sm" title="Hapus data" data-toggle="modal" data-target="#hapus{{ $d->id }}"><i class="fa fa-trash"></i></button>
-                    </td>
-                    @endif
-                @endauth
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
+        {{-- Alert untuk Success Message --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa fa-check-circle"></i> {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        {{-- Alert untuk Error Message --}}
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa fa-exclamation-circle"></i> {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+        {{-- Alert untuk Status Message --}}
+            @if(session('status'))
+                <div class="alert alert-{{ session('status')['icon'] == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert" id="autoCloseAlert">
+                    <i class="fa fa-{{ session('status')['icon'] == 'success' ? 'check-circle' : 'exclamation-circle' }}"></i> 
+                    <strong>{{ session('status')['judul'] }}!</strong> {{ session('status')['pesan'] }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
+        {{-- Alert untuk Validation Errors --}}
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong><i class="fa fa-exclamation-triangle"></i> Terdapat kesalahan input:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        {{-- Script untuk Auto Close Alert --}}
+        @if(session('status'))
+        <script>
+            // Auto close alert setelah 3 detik (3000 milliseconds)
+            setTimeout(function() {
+                var alert = document.getElementById('autoCloseAlert');
+                if (alert) {
+                    // Fade out effect
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+                    
+                    // Remove dari DOM setelah fade out selesai
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }
+            }, 3000);
+        </script>
+        @endif
+
+            <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">No</th>
+                        <th class="text-center">Foto</th>
+                        <th class="text-center">No Anggota</th>
+                        <th class="text-center">Nama Lengkap</th>
+                        <th class="text-center">Pekerjaan/Instansi</th>
+                        <th class="text-center">Alamat</th>
+                        @auth
+                            @if(auth()->user()->level === 'admin')
+                        <th class="text-center">Aksi</th>
+                            @endif
+                        @endauth
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($data as $d)
+                    <tr>
+                        <td class="text-center">{{ $loop->iteration }}</td>
+                        <td class="text-center">
+                            @if($d->foto)
+                                <a href="#" data-toggle="modal" data-target="#viewDetail{{ $d->id_anggota }}">
+                                    <img src="{{ asset('uploads/foto/'.$d->foto) }}" width="50px" height="50px" alt="Foto" style="cursor: pointer; object-fit: cover; border-radius: 4px;">
+                                </a>
+                            @else
+                                <div style="width: 50px; height: 50px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin: 0 auto;">
+                                    <i class="fa fa-user"></i>
+                                </div>
+                            @endif
+                        </td>
+                        <td class="text-center">{{ $d->id_anggota }}</td>
+                        <td class="text-center">{{ $d->nama }}</td>
+                        <td class="text-center">{{ ($d->pekerjaan ?? '-') . ($d->instansi ? '/' . $d->instansi : '') }}</td>
+                        <td class="text-center">{{ $d->alamat ?? '-' }}</td>
+                        @auth
+                            @if(auth()->user()->level === 'admin')
+                        <td class="text-center">
+                            <button type="button" class="btn btn-success btn-sm" title="Edit data" data-toggle="modal" data-target="#edit{{ $d->id }}"><i class="fa fa-edit"></i></button>
+                            <button type="button" class="btn btn-danger btn-sm" title="Hapus data" data-toggle="modal" data-target="#hapus{{ $d->id }}"><i class="fa fa-trash"></i></button>
+                        </td>
+                            @endif
+                        @endauth
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 </div>
 
@@ -189,7 +255,10 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nama Lengkap</label>
-                                <input type="text" value="{{ $d->nama }}" class="form-control" name="nama" required>
+                                <input type="text" value="{{ old('nama', $d->nama) }}" class="form-control @error('nama') is-invalid @enderror" name="nama" required>
+                                @error('nama')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -197,17 +266,23 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Jenis Kelamin</label>
-                                <select class="form-control" name="jenis_kelamin" required>
+                                <select class="form-control @error('jenis_kelamin') is-invalid @enderror" name="jenis_kelamin" required>
                                     <option value="">~Pilih~</option>
-                                    <option value="Laki-laki" {{ $d->jenis_kelamin == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="Perempuan" {{ $d->jenis_kelamin == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                    <option value="Laki-laki" {{ old('jenis_kelamin', $d->jenis_kelamin) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="Perempuan" {{ old('jenis_kelamin', $d->jenis_kelamin) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
+                                @error('jenis_kelamin')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Alamat</label>
-                                <input type="text" value="{{ $d->alamat }}" class="form-control" name="alamat" placeholder="Alamat">
+                                <input type="text" value="{{ old('alamat', $d->alamat) }}" class="form-control @error('alamat') is-invalid @enderror" name="alamat" placeholder="Alamat">
+                                @error('alamat')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -215,13 +290,19 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nomor HP</label>
-                                <input type="text" value="{{ $d->nomor_hp }}" class="form-control" name="nomor_hp" placeholder="Nomor HP">
+                                <input type="text" value="{{ old('nomor_hp', $d->nomor_hp) }}" class="form-control @error('nomor_hp') is-invalid @enderror" name="nomor_hp" placeholder="Nomor HP">
+                                @error('nomor_hp')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Alamat Email</label>
-                                <input type="email" value="{{ $d->email }}" class="form-control" name="email" placeholder="Alamat Email">
+                                <input type="email" value="{{ old('email', $d->email) }}" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="Alamat Email">
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -229,25 +310,31 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Status</label>
-                                <select class="form-control" name="status">
-                                    <option value="Aktif" {{ $d->status == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                    <option value="Tidak Aktif" {{ $d->status == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                                <select class="form-control @error('status') is-invalid @enderror" name="status">
+                                    <option value="Aktif" {{ old('status', $d->status) == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="Tidak Aktif" {{ old('status', $d->status) == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif</option>
                                 </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Pendidikan Terakhir</label>
-                                <select class="form-control" name="pendidikan_terakhir">
+                                <select class="form-control @error('pendidikan_terakhir') is-invalid @enderror" name="pendidikan_terakhir">
                                     <option value="">Pilih</option>
-                                    <option value="SD" {{ $d->pendidikan_terakhir == 'SD' ? 'selected' : '' }}>SD</option>
-                                    <option value="SMP" {{ $d->pendidikan_terakhir == 'SMP' ? 'selected' : '' }}>SMP</option>
-                                    <option value="SMA/SMK" {{ $d->pendidikan_terakhir == 'SMA/SMK' ? 'selected' : '' }}>SMA/SMK</option>
-                                    <option value="D3" {{ $d->pendidikan_terakhir == 'D3' ? 'selected' : '' }}>D3</option>
-                                    <option value="S1" {{ $d->pendidikan_terakhir == 'S1' ? 'selected' : '' }}>S1</option>
-                                    <option value="S2" {{ $d->pendidikan_terakhir == 'S2' ? 'selected' : '' }}>S2</option>
-                                    <option value="S3" {{ $d->pendidikan_terakhir == 'S3' ? 'selected' : '' }}>S3</option>
+                                    <option value="SD" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'SD' ? 'selected' : '' }}>SD</option>
+                                    <option value="SMP" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'SMP' ? 'selected' : '' }}>SMP</option>
+                                    <option value="SMA/SMK" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'SMA/SMK' ? 'selected' : '' }}>SMA/SMK</option>
+                                    <option value="D3" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'D3' ? 'selected' : '' }}>D3</option>
+                                    <option value="S1" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'S1' ? 'selected' : '' }}>S1</option>
+                                    <option value="S2" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'S2' ? 'selected' : '' }}>S2</option>
+                                    <option value="S3" {{ old('pendidikan_terakhir', $d->pendidikan_terakhir) == 'S3' ? 'selected' : '' }}>S3</option>
                                 </select>
+                                @error('pendidikan_terakhir')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -255,13 +342,19 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Pekerjaan</label>
-                                <input type="text" value="{{ $d->pekerjaan }}" class="form-control" name="pekerjaan" placeholder="Pekerjaan saat ini">
+                                <input type="text" value="{{ old('pekerjaan', $d->pekerjaan) }}" class="form-control @error('pekerjaan') is-invalid @enderror" name="pekerjaan" placeholder="Pekerjaan saat ini">
+                                @error('pekerjaan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Instansi</label>
-                                <input type="text" value="{{ $d->instansi }}" class="form-control" name="instansi" placeholder="Tempat bekerja">
+                                <input type="text" value="{{ old('instansi', $d->instansi) }}" class="form-control @error('instansi') is-invalid @enderror" name="instansi" placeholder="Tempat bekerja">
+                                @error('instansi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -269,22 +362,31 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Tanggal Daftar</label>
-                                <input type="date" value="{{ $d->tanggal_daftar }}" class="form-control" name="tanggal_daftar">
+                                <input type="date" value="{{ old('tanggal_daftar', $d->tanggal_daftar) }}" class="form-control @error('tanggal_daftar') is-invalid @enderror" name="tanggal_daftar">
+                                @error('tanggal_daftar')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Berlaku Hingga</label>
-                                <input type="date" value="{{ $d->berlaku_hingga }}" class="form-control" name="berlaku_hingga">
+                                <input type="date" value="{{ old('berlaku_hingga', $d->berlaku_hingga) }}" class="form-control @error('berlaku_hingga') is-invalid @enderror" name="berlaku_hingga">
+                                @error('berlaku_hingga')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Foto</label>
-                        <input type="file" class="form-control" accept=".jpg, .jpeg, .png" name="foto">
+                        <input type="file" class="form-control @error('foto') is-invalid @enderror" accept=".jpg, .jpeg, .png" name="foto">
                         @if($d->foto)
                             <small class="text-muted">Foto saat ini: {{ $d->foto }}</small>
                         @endif
+                        @error('foto')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -366,7 +468,10 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nama" placeholder="Nama Lengkap" required>
+                                <input type="text" class="form-control @error('nama') is-invalid @enderror" name="nama" placeholder="Nama Lengkap" value="{{ old('nama') }}" required>
+                                @error('nama')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -374,17 +479,23 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Jenis Kelamin <span class="text-danger">*</span></label>
-                                <select class="form-control" name="jenis_kelamin" required>
+                                <select class="form-control @error('jenis_kelamin') is-invalid @enderror" name="jenis_kelamin" required>
                                     <option value="">~Pilih~</option>
-                                    <option value="Laki-laki">Laki-laki</option>
-                                    <option value="Perempuan">Perempuan</option>
+                                    <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
+                                @error('jenis_kelamin')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Alamat</label>
-                                <input type="text" class="form-control" name="alamat" placeholder="Alamat">
+                                <input type="text" class="form-control @error('alamat') is-invalid @enderror" name="alamat" placeholder="Alamat" value="{{ old('alamat') }}">
+                                @error('alamat')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -392,13 +503,19 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nomor HP</label>
-                                <input type="text" class="form-control" name="nomor_hp" placeholder="Nomor HP">
+                                <input type="text" class="form-control @error('nomor_hp') is-invalid @enderror" name="nomor_hp" placeholder="Nomor HP" value="{{ old('nomor_hp') }}">
+                                @error('nomor_hp')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Alamat Email</label>
-                                <input type="email" class="form-control" name="email" placeholder="Alamat Email">
+                                <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="Alamat Email" value="{{ old('email') }}">
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -406,25 +523,31 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Status</label>
-                                <select class="form-control" name="status">
-                                    <option value="Aktif" selected>Aktif</option>
-                                    <option value="Tidak Aktif">Tidak Aktif</option>
+                                <select class="form-control @error('status') is-invalid @enderror" name="status">
+                                    <option value="Aktif" {{ old('status') == 'Aktif' || old('status') === null ? 'selected' : '' }}>Aktif</option>
+                                    <option value="Tidak Aktif" {{ old('status') == 'Tidak Aktif' ? 'selected' : '' }}>Tidak Aktif</option>
                                 </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Pendidikan Terakhir</label>
-                                <select class="form-control" name="pendidikan_terakhir">
+                                <select class="form-control @error('pendidikan_terakhir') is-invalid @enderror" name="pendidikan_terakhir">
                                     <option value="">Pilih</option>
-                                    <option value="SD">SD</option>
-                                    <option value="SMP">SMP</option>
-                                    <option value="SMA/SMK">SMA/SMK</option>
-                                    <option value="D3">D3</option>
-                                    <option value="S1">S1</option>
-                                    <option value="S2">S2</option>
-                                    <option value="S3">S3</option>
+                                    <option value="SD" {{ old('pendidikan_terakhir') == 'SD' ? 'selected' : '' }}>SD</option>
+                                    <option value="SMP" {{ old('pendidikan_terakhir') == 'SMP' ? 'selected' : '' }}>SMP</option>
+                                    <option value="SMA/SMK" {{ old('pendidikan_terakhir') == 'SMA/SMK' ? 'selected' : '' }}>SMA/SMK</option>
+                                    <option value="D3" {{ old('pendidikan_terakhir') == 'D3' ? 'selected' : '' }}>D3</option>
+                                    <option value="S1" {{ old('pendidikan_terakhir') == 'S1' ? 'selected' : '' }}>S1</option>
+                                    <option value="S2" {{ old('pendidikan_terakhir') == 'S2' ? 'selected' : '' }}>S2</option>
+                                    <option value="S3" {{ old('pendidikan_terakhir') == 'S3' ? 'selected' : '' }}>S3</option>
                                 </select>
+                                @error('pendidikan_terakhir')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -432,13 +555,19 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Pekerjaan</label>
-                                <input type="text" class="form-control" name="pekerjaan" placeholder="Pekerjaan saat ini">
+                                <input type="text" class="form-control @error('pekerjaan') is-invalid @enderror" name="pekerjaan" placeholder="Pekerjaan saat ini" value="{{ old('pekerjaan') }}">
+                                @error('pekerjaan')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Instansi</label>
-                                <input type="text" class="form-control" name="instansi" placeholder="Tempat bekerja">
+                                <input type="text" class="form-control @error('instansi') is-invalid @enderror" name="instansi" placeholder="Tempat bekerja" value="{{ old('instansi') }}">
+                                @error('instansi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -446,20 +575,29 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Tanggal Daftar</label>
-                                <input type="date" class="form-control" name="tanggal_daftar" value="{{ date('Y-m-d') }}">
+                                <input type="date" class="form-control @error('tanggal_daftar') is-invalid @enderror" name="tanggal_daftar" value="{{ old('tanggal_daftar', date('Y-m-d')) }}">
+                                @error('tanggal_daftar')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Berlaku Hingga</label>
-                                <input type="date" class="form-control" name="berlaku_hingga">
+                                <input type="date" class="form-control @error('berlaku_hingga') is-invalid @enderror" name="berlaku_hingga" value="{{ old('berlaku_hingga') }}">
+                                @error('berlaku_hingga')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Foto <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" accept=".jpg, .jpeg, .png" name="foto" required>
+                        <input type="file" class="form-control @error('foto') is-invalid @enderror" accept=".jpg, .jpeg, .png" name="foto" required>
                         <small class="form-text text-muted">Format: JPG, JPEG, PNG. Maksimal 2MB</small>
+                        @error('foto')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -470,4 +608,14 @@
         </div>
     </div>
 </div>
+
+{{-- Script untuk membuka kembali modal jika ada error --}}
+@if($errors->any() && session('modal'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#{{ session("modal") }}').modal('show');
+    });
+</script>
+@endif
+
 @endsection
