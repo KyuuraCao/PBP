@@ -40,6 +40,22 @@ class Cbuku extends Controller
         return $categoryPrefix . '-' . $prefix . $month . $newNumber;
     }
 
+            public function cetak()
+        {
+            $buku = Mbuku::get();
+            return view('buku.cetak', compact('buku'));
+        }
+
+        public function excel()
+        {
+            header("Content-type: application/vnd-ms-excel");
+            header('Content-Disposition: attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"');
+            header('Cache-Control: max-age=0');
+
+            $buku = Mbuku::get();
+            return view('buku.excel', compact('buku'));
+        }
+
     public function save(Request $request)
     {
         if (!auth()->check() || auth()->user()->level !== 'admin') {

@@ -81,6 +81,23 @@ class Ckategori extends Controller
         ]);
     }
 
+
+            public function cetak()
+        {
+            $kategori = Mkategori::get();
+            return view('kategori.cetak', compact('kategori'));
+        }
+
+        public function excel()
+        {
+            header("Content-type: application/vnd-ms-excel");
+            header('Content-Disposition: attachment;filename="data_kategori_' . date('Y-m-d_His') . '.xls"');
+            header('Cache-Control: max-age=0');
+
+            $kategori = Mkategori::get();
+            return view('kategori.excel', compact('kategori'));
+        }
+
     public function destroy($id)
     {
         if (!auth()->check() || auth()->user()->level !== 'admin') {

@@ -13,11 +13,34 @@
   <link rel="stylesheet" href="{{ asset('assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('assets/dist/css/adminlte.min.css') }}">
+  
+  <!-- Custom CSS Fix -->
+  <style>
+/* Fix burger menu z-index issue */
+.main-header {
+  z-index: 1040 !important;
+}
+
+.main-sidebar {
+  z-index: 1039 !important;
+}
+
+/* Ensure pushmenu button is clickable */
+.nav-link[data-widget="pushmenu"] {
+  cursor: pointer;
+  position: relative;
+  z-index: 1050;
+}
+
+/* Fix overlay issues */
+.sidebar-overlay {
+  z-index: 1038 !important;
+}
+
+</style>
 </head>
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
 <div class="wrapper">
-
-  
 
   <!-- Navbar -->
   <nav class="main-header navbar navbar-expand navbar-dark">
@@ -36,18 +59,15 @@
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-      <!-- Navbar Search -->
+      <!-- Logout Button -->
       <li class="nav-item">
         <form action="{{ route('logout') }}" method="post" style="display:inline;">
           @csrf
-          <button type="submit" class="nav-link btn btn-link p-0" role="button" style="color: inherit;">
+          <button type="submit" class="nav-link btn btn-link p-0" role="button" style="color: inherit;" title="Logout">
             <i class="fas fa-power-off"></i>
           </button>
         </form>
       </li>
-
-      <!-- Messages Dropdown Menu -->
-      
     </ul>
   </nav>
   <!-- /.navbar -->
@@ -68,56 +88,54 @@
           <img src="{{ asset('assets/dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="{{ route('home') }}" class="d-block">Alexander Pierce</a>
+          <a href="{{ route('home') }}" class="d-block">{{ auth()->user()->name }}</a>
         </div>
       </div>
     
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-        
+          
           @auth
           @if(auth()->user()->level === 'admin')
-
-              
+          <!-- Admin specific menu items can go here -->
           @endif
           @endauth
+          
+          <li class="nav-item">
+            <a href="{{ route('anggota.index')}}" class="nav-link">
+              <i class="fas fa-users nav-icon"></i>
+              <p>Anggota</p>
+            </a>
+          </li>
 
+          <li class="nav-item">
+            <a href="{{ route('buku.index')}}" class="nav-link">
+              <i class="fas fa-book nav-icon"></i>
+              <p>Data Buku</p>
+            </a>
+          </li>
 
-              <li class="nav-item">
-                    <a href="{{ route('anggota.index')}}" class="nav-link">
-                        <i class="fas fa-user"></i>
-                        <p>Anggota</p>
-                    </a>
-                </li>
-
-                  <li class="nav-item">
-                    <a href="{{ route('buku.index')}}" class="nav-link">
-                        <i class="fas fa-user"></i>
-                        <p>Data Buku</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('kategori.index')}}" class="nav-link">
-                        <i class="fas fa-user"></i>
-                        <p>Kategori</p>
-                    </a>
-                </li>
-             <li class="nav-item">
-               <a class="nav-link" data-widget="navbar-search" href="#" role="button">
-                   <i class="fas fa-truck"></i>
-                   <p>Shipping</p>
-               </a>
-             </li>
-             <li class="nav-item">
-               <a class="nav-link" data-widget="navbar-search" href="#" role="button">
-                   <i class="fas fa-boxes"></i>
-                   <p>Inventory</p>
-               </a>
-             </li>
+          <li class="nav-item">
+            <a href="{{ route('kategori.index')}}" class="nav-link">
+              <i class="fas fa-tags nav-icon"></i>
+              <p>Kategori</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="fas fa-truck nav-icon"></i>
+              <p>Shipping</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="fas fa-boxes nav-icon"></i>
+              <p>Inventory</p>
+            </a>
+          </li>
           
         </ul>
       </nav>
@@ -133,15 +151,48 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">@yield('title', 'NordickBJB')</h1>
-          </div><!-- /.col -->
+            <h1 class="m-0">@yield('title', '')</h1>
+          </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active">@yield('breadcrumb', 'Dashboard v2')</li>
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">@yield('breadcrumb', 'Dashboard v2')</li>
             </ol>
-          </div><!-- /.col -->
-        </div><!-- /.row -->
-      </div><!-- /.container-fluid -->  
+          </div>
+        </div>
+      </div>  
     </div>
-    <!-- /.content-header -->
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        @yield('konten')
+      </div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+
+  <!-- Main Footer -->
+
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+<!-- jQuery -->
+<script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
+<!-- Bootstrap -->
+<script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<!-- overlayScrollbars -->
+<script src="{{ asset('assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+<!-- AdminLTE App -->
+<script src="{{ asset('assets/dist/js/adminlte.js') }}"></script>
+
+</body>
+</html>

@@ -7,16 +7,51 @@ use App\Models\Manggota;
 
 class Canggota extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Manggota::all();
+        // Query builder dengan filter
+        $query = Manggota::query();
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->jenis_kelamin);
+        }
+
+        // Filter berdasarkan pendidikan terakhir (TAMBAHAN BARU)
+        if ($request->filled('pendidikan_terakhir')) {
+            $query->where('pendidikan_terakhir', $request->pendidikan_terakhir);
+        }
+
+        // Filter berdasarkan tanggal daftar (dari - sampai)
+        if ($request->filled('dari') && $request->filled('sampai')) {
+            $query->whereBetween('tanggal_daftar', [$request->dari, $request->sampai]);
+        }
+
+        // Filter berdasarkan pencarian nama
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('id_anggota', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('alamat', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Urutkan berdasarkan tanggal daftar terbaru
+        $query->orderBy('tanggal_daftar', 'DESC');
+
+        $data = $query->get();
         $nextIdAnggota = $this->generateIdAnggota();
+        
         return view('anggota.index', compact('data', 'nextIdAnggota'));
     }
 
     private function generateIdAnggota()
     {
-        // Format: A-YYYYMMDD-XXX (contoh: A-20251001-001)
         $prefix = 'A-';
         $today = date('Ymd');
         
@@ -83,6 +118,98 @@ class Canggota extends Controller
         ]);
     }
 
+    public function cetak(Request $request)
+    {
+        // Query dengan SEMUA filter untuk cetak
+        $query = Manggota::query();
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->jenis_kelamin);
+        }
+
+        // Filter pendidikan terakhir
+        if ($request->filled('pendidikan_terakhir')) {
+            $query->where('pendidikan_terakhir', $request->pendidikan_terakhir);
+        }
+
+        // Filter tanggal
+        if ($request->filled('dari') && $request->filled('sampai')) {
+            $query->whereBetween('tanggal_daftar', [$request->dari, $request->sampai]);
+        }
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('id_anggota', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('alamat', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        $anggota = $query->orderBy('tanggal_daftar', 'DESC')->get();
+        
+        // Kirim info filter ke view
+        $filterInfo = [
+            'status' => $request->status,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'pendidikan_terakhir' => $request->pendidikan_terakhir,
+            'dari' => $request->dari,
+            'sampai' => $request->sampai,
+            'search' => $request->search,
+        ];
+        
+        return view('anggota.cetak', compact('anggota', 'filterInfo'));
+    }
+
+    public function excel(Request $request)
+    {
+        header("Content-type: application/vnd-ms-excel");
+        header('Content-Disposition: attachment;filename="data_anggota_' . date('Y-m-d_His') . '.xls"');
+        header('Cache-Control: max-age=0');
+
+        // Query dengan SEMUA filter untuk export
+        $query = Manggota::query();
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->jenis_kelamin);
+        }
+
+        // Filter pendidikan terakhir
+        if ($request->filled('pendidikan_terakhir')) {
+            $query->where('pendidikan_terakhir', $request->pendidikan_terakhir);
+        }
+
+        // Filter tanggal
+        if ($request->filled('dari') && $request->filled('sampai')) {
+            $query->whereBetween('tanggal_daftar', [$request->dari, $request->sampai]);
+        }
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('id_anggota', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('alamat', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        $anggota = $query->orderBy('tanggal_daftar', 'DESC')->get();
+        
+        return view('anggota.excel', compact('anggota'));
+    }
+
     public function update(Request $request, $id)
     {
         if (!auth()->check() || auth()->user()->level !== 'admin') {
@@ -132,12 +259,20 @@ class Canggota extends Controller
             'foto' => $filename
         ]);
 
+       
+
         return redirect()->route('anggota.index')->with('status', [
             'judul' => 'Berhasil', 
             'pesan' => 'Data berhasil diupdate', 
             'icon' => 'success'
         ]);
     }
+
+            public function cetakKartu($id)
+            {
+                $anggota = Manggota::findOrFail($id);
+                return view('anggota.cetak_kartu', compact('anggota'));
+            }
 
     public function destroy($id)
     {

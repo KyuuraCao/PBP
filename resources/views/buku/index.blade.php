@@ -7,9 +7,24 @@
 
         @auth
           @if(auth()->user()->level === 'admin')
-            <div>
-                <button type="button" class="btn btn-primary btn-sm mb-2" data-toggle="modal" data-target="#tambah" title="Tambah data buku"><i class="fa fa-plus-square"></i> &nbsp;Tambah Data</button>
-            </div>
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                        
+                            <div>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#tambah" title="Tambah data buku">
+                                    <i class="fa fa-plus-square"></i> &nbsp;Tambah Data
+                                </button>
+                            </div>
+
+            
+                            <div>
+                                <a href="{{ route('buku.excel') }}" class="btn btn-success btn-sm" title="Export ke Excel">
+                                    <i class="fa fa-file-excel"></i> &nbsp;Export Excel
+                                </a>
+                                <a href="{{ route('buku.cetak') }}" target="_blank" class="btn btn-danger btn-sm ml-2" title="Cetak Data">
+                                    <i class="fa fa-print"></i> &nbsp;Cetak
+                                </a>
+                            </div>
+                        </div>
           @endif
         @endauth
 

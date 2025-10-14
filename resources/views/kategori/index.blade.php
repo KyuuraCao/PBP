@@ -1,15 +1,30 @@
 @extends('layout.app')
 
-@section('title', 'Master Kategori Buku')
+@section('title', 'Master Kategori kategori')
 @section('konten')
 <div class="card">
     <div class="card-body">
 
         @auth
           @if(auth()->user()->level === 'admin')
-            <div>
-                <button type="button" class="btn btn-primary btn-sm mb-2" data-toggle="modal" data-target="#tambah" title="Tambah item"><i class="fa fa-plus-square"></i> &nbsp;Tambah Item</button>
-            </div>
+             <div class="mb-3 d-flex justify-content-between align-items-center">
+                        
+                            <div>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#tambah" title="Tambah data kategori">
+                                    <i class="fa fa-plus-square"></i> &nbsp;Tambah Data
+                                </button>
+                            </div>
+
+            
+                            <div>
+                                <a href="{{ route('kategori.excel') }}" class="btn btn-success btn-sm" title="Export ke Excel">
+                                    <i class="fa fa-file-excel"></i> &nbsp;Export Excel
+                                </a>
+                                <a href="{{ route('kategori.cetak') }}" target="_blank" class="btn btn-danger btn-sm ml-2" title="Cetak Data">
+                                    <i class="fa fa-print"></i> &nbsp;Cetak
+                                </a>
+                            </div>
+                        </div>
           @endif
         @endauth
 
@@ -114,7 +129,7 @@
                     <tr>
                         <td colspan="5" class="text-center py-4">
                             <i class="fa fa-inbox fa-3x text-muted mb-3 d-block"></i>
-                            <p class="text-muted">Belum ada data kategori buku</p>
+                            <p class="text-muted">Belum ada data kategori kategori</p>
                         </td>
                     </tr>
                     @endforelse
@@ -134,7 +149,7 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Kategori Buku</h5>
+                    <h5 class="modal-title">Edit Kategori kategori</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -222,7 +237,7 @@
             <form method="POST" action="{{ route('kategori.save') }}">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Kategori Buku</h5>
+                    <h5 class="modal-title">Tambah Kategori kategori</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -247,7 +262,7 @@
                     </div>
                     <div class="form-group">
                         <label>Deskripsi</label>
-                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" name="deskripsi" rows="4" placeholder="Deskripsi kategori buku">{{ old('deskripsi') }}</textarea>
+                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" name="deskripsi" rows="4" placeholder="Deskripsi kategori kategori">{{ old('deskripsi') }}</textarea>
                         @error('deskripsi')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

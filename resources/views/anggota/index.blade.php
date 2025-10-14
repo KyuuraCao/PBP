@@ -2,18 +2,31 @@
 
 @section('title', 'Data Anggota')
 @section('konten')
+
 <div class="card">
-	<div class="card-body">
+    <div class="card-body">
 
         @auth
-          @if(auth()->user()->level === 'admin')
-            <div>
-                <button type="button" class="btn btn-primary btn-sm mb-2" data-toggle="modal" data-target="#tambah" title="Tambah data anggota"><i class="fa fa-plus-square"></i> &nbsp;Tambah Data</button>
-            </div>
-          @endif
+            @if(auth()->user()->level === 'admin')
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#tambah" title="Tambah data anggota">
+                            <i class="fa fa-plus-square"></i> &nbsp;Tambah Data
+                        </button>
+                    </div>
+                    <div>
+                        <a href="{{ route('anggota.excel', request()->all()) }}" class="btn btn-success btn-sm" title="Export ke Excel">
+                            <i class="fa fa-file-excel"></i> &nbsp;Export Excel
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm ml-2" data-toggle="modal" data-target="#filterCetak" title="Cetak Data">
+                            <i class="fa fa-print"></i> &nbsp;Cetak
+                        </button>
+                    </div>
+                </div>
+            @endif
         @endauth
 
-        {{-- Alert untuk Success Message --}}
+        {{-- Alerts --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fa fa-check-circle"></i> {{ session('success') }}
@@ -23,7 +36,6 @@
             </div>
         @endif
 
-        {{-- Alert untuk Error Message --}}
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fa fa-exclamation-circle"></i> {{ session('error') }}
@@ -32,18 +44,17 @@
                 </button>
             </div>
         @endif
-        {{-- Alert untuk Status Message --}}
-            @if(session('status'))
-                <div class="alert alert-{{ session('status')['icon'] == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert" id="autoCloseAlert">
-                    <i class="fa fa-{{ session('status')['icon'] == 'success' ? 'check-circle' : 'exclamation-circle' }}"></i> 
-                    <strong>{{ session('status')['judul'] }}!</strong> {{ session('status')['pesan'] }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
 
-        {{-- Alert untuk Validation Errors --}}
+        @if(session('status'))
+            <div class="alert alert-{{ session('status')['icon'] == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert" id="autoCloseAlert">
+                <i class="fa fa-{{ session('status')['icon'] == 'success' ? 'check-circle' : 'exclamation-circle' }}"></i> 
+                <strong>{{ session('status')['judul'] }}!</strong> {{ session('status')['pesan'] }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong><i class="fa fa-exclamation-triangle"></i> Terdapat kesalahan input:</strong>
@@ -58,48 +69,90 @@
             </div>
         @endif
 
-        {{-- Script untuk Auto Close Alert --}}
-        @if(session('status'))
-        <script>
-            // Auto close alert setelah 3 detik (3000 milliseconds)
-            setTimeout(function() {
-                var alert = document.getElementById('autoCloseAlert');
-                if (alert) {
-                    // Fade out effect
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-                    
-                    // Remove dari DOM setelah fade out selesai
-                    setTimeout(function() {
-                        alert.remove();
-                    }, 500);
-                }
-            }, 3000);
-        </script>
-        @endif
+        {{-- FORM FILTER --}}
+        <div class="card mb-3" style="background-color: #2d3338;">
+            <div class="card-body">
+                <h6 class="mb-3 text-white"><i class="fa fa-filter"></i> Filter Data Anggota</h6>
+                <form id="filterForm" method="GET" action="{{ route('anggota.index') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small text-white">Pencarian Nama</label>
+                                <input type="text" class="form-control form-control-sm" name="search" 
+                                    value="{{ request('search') }}" placeholder="Cari nama..."
+                                    style="background-color: #173659; color: rgb(107, 103, 103); border-color: #4a5259;">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small text-white">Tanggal Daftar</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="date" class="form-control form-control-sm" name="dari" 
+                                        value="{{ request('dari') }}" onchange="this.form.submit()"
+                                        style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                                    <div class="input-group-append input-group-prepend">
+                                        <span class="input-group-text" style="background-color: #3a4149; color: white; border-color: #4a5259;">s/d</span>
+                                    </div>
+                                    <input type="date" class="form-control form-control-sm" name="sampai" 
+                                        value="{{ request('sampai') }}" onchange="this.form.submit()"
+                                        style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fa fa-search"></i> Cari
+                            </button>
+                            <a href="{{ route('anggota.index') }}" class="btn btn-secondary btn-sm">
+                                <i class="fa fa-undo"></i> Reset Filter
+                            </a>
+                            @if(request()->anyFilled(['search', 'dari', 'sampai']))
+                                <span class="badge badge-info ml-2">
+                                    <i class="fa fa-filter"></i> Filter Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {{-- INFO JUMLAH DATA --}}
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                <i class="fa fa-info-circle"></i> Menampilkan <strong>{{ $data->count() }}</strong> data anggota
+            </small>
+            @if(request()->anyFilled(['search', 'status', 'jenis_kelamin', 'pendidikan_terakhir', 'dari', 'sampai']))
+                <small class="text-info">
+                    <i class="fa fa-filter"></i> Hasil filter diterapkan
+                </small>
+            @endif
+        </div>
 
-            <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-                <thead>
+        {{-- TABEL UTAMA --}}
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-dark">
                     <tr>
-                        <th class="text-center">No</th>
-                        <th class="text-center">Foto</th>
-                        <th class="text-center">No Anggota</th>
-                        <th class="text-center">Nama Lengkap</th>
-                        <th class="text-center">Pekerjaan/Instansi</th>
-                        <th class="text-center">Alamat</th>
+                        <th class="text-center" width="5%">No</th>
+                        <th class="text-center" width="10%">Foto</th>
+                        <th class="text-center" width="15%">No Anggota</th>
+                        <th class="text-center" width="20%">Nama Lengkap</th>
+                        <th class="text-center" width="20%">Pekerjaan/Instansi</th>
+                        <th class="text-center" width="20%">Alamat</th>
                         @auth
                             @if(auth()->user()->level === 'admin')
-                        <th class="text-center">Aksi</th>
+                                <th class="text-center" width="10%">Aksi</th>
                             @endif
                         @endauth
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($data as $d)
+                    @forelse($data as $d)
                     <tr>
-                        <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center">
+                        <td class="text-center align-middle">{{ $loop->iteration }}</td>
+                        <td class="text-center align-middle">
                             @if($d->foto)
                                 <a href="#" data-toggle="modal" data-target="#viewDetail{{ $d->id_anggota }}">
                                     <img src="{{ asset('uploads/foto/'.$d->foto) }}" width="50px" height="50px" alt="Foto" style="cursor: pointer; object-fit: cover; border-radius: 4px;">
@@ -110,128 +163,47 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="text-center">{{ $d->id_anggota }}</td>
-                        <td class="text-center">{{ $d->nama }}</td>
-                        <td class="text-center">{{ ($d->pekerjaan ?? '-') . ($d->instansi ? '/' . $d->instansi : '') }}</td>
-                        <td class="text-center">{{ $d->alamat ?? '-' }}</td>
+                        <td class="text-center align-middle">{{ $d->id_anggota }}</td>
+                        <td class="align-middle">{{ $d->nama }}</td>
+                        <td class="align-middle">{{ ($d->pekerjaan ?? '-') . ($d->instansi ? '/' . $d->instansi : '') }}</td>
+                        <td class="align-middle">{{ $d->alamat ?? '-' }}</td>
                         @auth
                             @if(auth()->user()->level === 'admin')
-                        <td class="text-center">
-                            <button type="button" class="btn btn-success btn-sm" title="Edit data" data-toggle="modal" data-target="#edit{{ $d->id }}"><i class="fa fa-edit"></i></button>
-                            <button type="button" class="btn btn-danger btn-sm" title="Hapus data" data-toggle="modal" data-target="#hapus{{ $d->id }}"><i class="fa fa-trash"></i></button>
+                        <td class="text-center align-middle">
+                            <button type="button" class="btn btn-success btn-sm" title="Edit data" data-toggle="modal" data-target="#edit{{ $d->id }}">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" title="Hapus data" data-toggle="modal" data-target="#hapus{{ $d->id }}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm" 
+                                title="Cetak Kartu" 
+                                onclick="window.open('{{ route('anggota.kartu', $d->id) }}', '_blank')">
+                                <i class="fa fa-id-card"></i>
+                            </button>
                         </td>
                             @endif
                         @endauth
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fa fa-info-circle"></i> Tidak ada data anggota
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+        {{-- END TABEL --}}
+
     </div>
 </div>
-</div>
 
-<!-- Modals Section - All modals outside the table -->
+{{-- SEMUA MODAL EDIT, HAPUS, DAN DETAIL UNTUK SETIAP DATA --}}
 @foreach($data as $d)
-<!-- Modal Detail/View Foto dengan Informasi Lengkap -->
-<div class="modal fade" id="viewDetail{{ $d->id_anggota }}" tabindex="-1" aria-labelledby="viewDetailLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detail Anggota</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-4 text-center mb-3">
-                        @if($d->foto)
-                            <img src="{{ asset('uploads/foto/'.$d->foto) }}" class="img-fluid rounded" alt="Foto {{ $d->nama }}" style="max-height: 300px; object-fit: cover;">
-                        @else
-                            <div style="height: 300px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                                <i class="fa fa-user fa-5x text-muted"></i>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="col-md-8">
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <td width="40%"><strong>No Anggota</strong></td>
-                                <td width="5%">:</td>
-                                <td>{{ $d->id_anggota }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Nama Lengkap</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->nama }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Jenis Kelamin</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->jenis_kelamin ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Alamat</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->alamat ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Nomor HP</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->nomor_hp ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Email</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->email ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Pendidikan Terakhir</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->pendidikan_terakhir ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Pekerjaan</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->pekerjaan ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Instansi</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->instansi ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Status</strong></td>
-                                <td>:</td>
-                                <td>
-                                    <span class="badge badge-{{ $d->status == 'Aktif' ? 'success' : 'secondary' }}">
-                                        {{ $d->status ?? '-' }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tanggal Daftar</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->tanggal_daftar ? date('d-m-Y', strtotime($d->tanggal_daftar)) : '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Berlaku Hingga</strong></td>
-                                <td>:</td>
-                                <td>{{ $d->berlaku_hingga ? date('d-m-Y', strtotime($d->berlaku_hingga)) : '-' }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><i class="fa fa-times"></i> &nbsp;Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal edit-->
+<!-- Modal Edit -->
 <div class="modal fade" id="edit{{ $d->id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -249,7 +221,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nomor Anggota</label>
-                                <input type="text" value="{{ $d->id_anggota }}" class="form-control" name="id_anggota" readonly style="background-color: #e9ecef;">
+                                <input type="text" value="{{ $d->id_anggota }}" class="form-control" name="id_anggota" readonly style="background-color: #414448;">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -361,15 +333,6 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Tanggal Daftar</label>
-                                <input type="date" value="{{ old('tanggal_daftar', $d->tanggal_daftar) }}" class="form-control @error('tanggal_daftar') is-invalid @enderror" name="tanggal_daftar">
-                                @error('tanggal_daftar')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 <label>Berlaku Hingga</label>
                                 <input type="date" value="{{ old('berlaku_hingga', $d->berlaku_hingga) }}" class="form-control @error('berlaku_hingga') is-invalid @enderror" name="berlaku_hingga">
                                 @error('berlaku_hingga')
@@ -398,7 +361,7 @@
     </div>
 </div>
 
-<!-- Modal Hapus-->
+<!-- Modal Hapus -->
 <div class="modal fade" id="hapus{{ $d->id }}" tabindex="-1" aria-labelledby="hapusModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -440,9 +403,181 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Detail -->
+<div class="modal fade" id="viewDetail{{ $d->id_anggota }}" tabindex="-1" aria-labelledby="viewDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detail Anggota</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        @if($d->foto)
+                            <img src="{{ asset('uploads/foto/'.$d->foto) }}" 
+                                 alt="Foto {{ $d->nama }}" 
+                                 class="img-fluid rounded mb-2" 
+                                 style="max-height: 200px; object-fit: cover;">
+                        @else
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded" 
+                                 style="width: 100%; height: 200px;">
+                                <i class="fa fa-user fa-3x text-muted"></i>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <th width="35%">No Anggota</th>
+                                <td>: {{ $d->id_anggota }}</td>
+                            </tr>
+                            <tr>
+                                <th>Nama Lengkap</th>
+                                <td>: {{ $d->nama }}</td>
+                            </tr>
+                            <tr>
+                                <th>Jenis Kelamin</th>
+                                <td>: {{ $d->jenis_kelamin ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Tempat, Tanggal Lahir</th>
+                                <td>: {{ $d->tempat_lahir ?? '-' }}, 
+                                    {{ $d->tanggal_lahir ? \Carbon\Carbon::parse($d->tanggal_lahir)->format('d/m/Y') : '-' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Alamat</th>
+                                <td>: {{ $d->alamat ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>No Telepon</th>
+                                <td>: {{ $d->nomor_hp ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Pekerjaan</th>
+                                <td>: {{ $d->pekerjaan ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Instansi</th>
+                                <td>: {{ $d->instansi ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Pendidikan</th>
+                                <td>: {{ $d->pendidikan_terakhir ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    @if($d->status == 'Aktif')
+                                        <span class="badge badge-success">Aktif</span>
+                                    @else
+                                        <span class="badge badge-secondary">Tidak Aktif</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Daftar</th>
+                                <td>: {{ $d->tanggal_daftar ? \Carbon\Carbon::parse($d->tanggal_daftar)->format('d/m/Y') : '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Berlaku Hingga</th>
+                                <td>: {{ $d->berlaku_hingga ? \Carbon\Carbon::parse($d->berlaku_hingga)->format('d/m/Y') : '-' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                    <i class="fa fa-times"></i> Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endforeach
 
-<!-- Modal tambah-->
+{{-- MODAL FILTER CETAK (Hanya 1x) --}}
+<div class="modal fade" id="filterCetak" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="GET" action="{{ route('anggota.cetak') }}" target="_blank">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-print"></i> Filter Data untuk Cetak</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <small><i class="fa fa-info-circle"></i> Pilih filter untuk mencetak data sesuai kriteria. Kosongkan untuk cetak semua data.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Pencarian</label>
+                        <input type="text" class="form-control" name="search" placeholder="Cari nama, ID, atau alamat...">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" name="status">
+                            <option value="">Semua</option>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Tidak Aktif">Tidak Aktif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Jenis Kelamin</label>
+                        <select class="form-control" name="jenis_kelamin">
+                            <option value="">Semua</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Pendidikan Terakhir</label>
+                        <select class="form-control" name="pendidikan_terakhir">
+                            <option value="">Semua</option>
+                            <option value="SD">SD</option>
+                            <option value="SMP">SMP</option>
+                            <option value="SMA/SMK">SMA/SMK</option>
+                            <option value="D3">D3</option>
+                            <option value="S1">S1</option>
+                            <option value="S2">S2</option>
+                            <option value="S3">S3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Daftar</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="date" class="form-control" name="dari" placeholder="Dari">
+                                <small class="text-muted">Dari</small>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="date" class="form-control" name="sampai" placeholder="Sampai">
+                                <small class="text-muted">Sampai</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                        <i class="fa fa-times"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fa fa-print"></i> Cetak
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL TAMBAH (Hanya 1x) --}}
 <div class="modal fade" id="tambah" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -459,7 +594,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nomor Anggota</label>
-                                <input type="text" class="form-control" name="id_anggota" value="{{ $nextIdAnggota }}" readonly style="background-color: #e9ecef;">
+                                <input type="text" class="form-control" name="id_anggota" value="{{ $nextIdAnggota }}" readonly style="background-color: #48515a;">
                                 <small class="form-text text-muted">
                                     <i class="fa fa-info-circle"></i> Nomor anggota otomatis di-generate
                                 </small>
@@ -609,13 +744,22 @@
     </div>
 </div>
 
-{{-- Script untuk membuka kembali modal jika ada error --}}
-@if($errors->any() && session('modal'))
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        $('#{{ session("modal") }}').modal('show');
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                
+                setTimeout(function() {
+                    alert.remove();
+                }, 500); 
+            }, 3000); // 5000 ms = 5 detik
+        });
     });
 </script>
-@endif
 
 @endsection

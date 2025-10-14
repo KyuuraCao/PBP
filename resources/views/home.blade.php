@@ -1,6 +1,6 @@
 @extends('layout.app')
 
-@section('content')
+@section('konten')
     <h1>Home</h1>
 
 @endsection
