@@ -7,28 +7,25 @@
 
         @auth
           @if(auth()->user()->level === 'admin')
-                        <div class="mb-3 d-flex justify-content-between align-items-center">
-                        
-                            <div>
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#tambah" title="Tambah data buku">
-                                    <i class="fa fa-plus-square"></i> &nbsp;Tambah Data
-                                </button>
-                            </div>
-
-            
-                            <div>
-                                <a href="{{ route('buku.excel') }}" class="btn btn-success btn-sm" title="Export ke Excel">
-                                    <i class="fa fa-file-excel"></i> &nbsp;Export Excel
-                                </a>
-                                <a href="{{ route('buku.cetak') }}" target="_blank" class="btn btn-danger btn-sm ml-2" title="Cetak Data">
-                                    <i class="fa fa-print"></i> &nbsp;Cetak
-                                </a>
-                            </div>
-                        </div>
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#tambah" title="Tambah data buku">
+                            <i class="fa fa-plus-square"></i> &nbsp;Tambah Data
+                        </button>
+                    </div>
+                    <div>
+                        <a href="{{ route('buku.excel', request()->all()) }}" class="btn btn-success btn-sm" title="Export ke Excel">
+                            <i class="fa fa-file-excel"></i> &nbsp;Export Excel
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm ml-2" data-toggle="modal" data-target="#filterCetak" title="Cetak Data">
+                            <i class="fa fa-print"></i> &nbsp;Cetak
+                        </button>
+                    </div>
+                </div>
           @endif
         @endauth
 
-        {{-- Alert untuk Success Message --}}
+        {{-- Alerts --}}
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fa fa-check-circle"></i> {{ session('success') }}
@@ -38,7 +35,6 @@
             </div>
         @endif
 
-        {{-- Alert untuk Error Message --}}
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fa fa-exclamation-circle"></i> {{ session('error') }}
@@ -48,7 +44,6 @@
             </div>
         @endif
 
-        {{-- Alert untuk Status Message --}}
         @if(session('status'))
             <div class="alert alert-{{ session('status')['icon'] == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert" id="autoCloseAlert">
                 <i class="fa fa-{{ session('status')['icon'] == 'success' ? 'check-circle' : 'exclamation-circle' }}"></i> 
@@ -59,7 +54,6 @@
             </div>
         @endif
 
-        {{-- Alert untuk Validation Errors --}}
         @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong><i class="fa fa-exclamation-triangle"></i> Terdapat kesalahan input:</strong>
@@ -74,53 +68,115 @@
             </div>
         @endif
 
-        {{-- Script untuk Auto Close Alert --}}
-        @if(session('status'))
-        <script>
-            setTimeout(function() {
-                var alert = document.getElementById('autoCloseAlert');
-                if (alert) {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-                    setTimeout(function() {
-                        alert.remove();
-                    }, 500);
-                }
-            }, 3000);
-        </script>
-        @endif
+        {{-- FORM FILTER --}}
+        <div class="card mb-3" style="background-color: #2d3338;">
+            <div class="card-body">
+                <h6 class="mb-3 text-white"><i class="fa fa-filter"></i> Filter Data Buku</h6>
+                <form id="filterForm" method="GET" action="{{ route('buku.index') }}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="small text-white">Status</label>
+                                <select class="form-control form-control-sm" name="status" onchange="this.form.submit()"
+                                    style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                                    <option value="">Semua Status</option>
+                                    <option value="Ada" {{ request('status') == 'Ada' ? 'selected' : '' }}>Ada</option>
+                                    <option value="Dipinjam" {{ request('status') == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                                    <option value="Hilang" {{ request('status') == 'Hilang' ? 'selected' : '' }}>Hilang</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="small text-white">Kategori</label>
+                                <input type="text" class="form-control form-control-sm" name="kategori" 
+                                    value="{{ request('kategori') }}" placeholder="Filter kategori..."
+                                    style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="small text-white">Tahun Terbit</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm" name="tahun_dari" 
+                                        value="{{ request('tahun_dari') }}" placeholder="Dari" min="1900" max="{{ date('Y') }}"
+                                        style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                                    <div class="input-group-append input-group-prepend">
+                                        <span class="input-group-text" style="background-color: #3a4149; color: white; border-color: #4a5259;">s/d</span>
+                                    </div>
+                                    <input type="number" class="form-control form-control-sm" name="tahun_sampai" 
+                                        value="{{ request('tahun_sampai') }}" placeholder="Sampai" min="1900" max="{{ date('Y') }}"
+                                        style="background-color: #3a4149; color: white; border-color: #4a5259;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="small text-white d-block">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fa fa-search"></i> Cari
+                            </button>
+                            <a href="{{ route('buku.index') }}" class="btn btn-secondary btn-sm">
+                                <i class="fa fa-undo"></i> Reset Filter
+                            </a>
+                            @if(request()->anyFilled(['search', 'status', 'kategori', 'tahun_dari', 'tahun_sampai']))
+                                <span class="badge badge-info ml-2">
+                                    <i class="fa fa-filter"></i> Filter Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
+        {{-- INFO JUMLAH DATA --}}
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                <i class="fa fa-info-circle"></i> Menampilkan <strong>{{ $data->count() }}</strong> data buku
+            </small>
+            @if(request()->anyFilled(['search', 'status', 'kategori', 'tahun_dari', 'tahun_sampai']))
+                <small class="text-info">
+                    <i class="fa fa-filter"></i> Hasil filter diterapkan
+                </small>
+            @endif
+        </div>
+
+        {{-- TABEL UTAMA --}}
         <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-                <thead>
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-dark">
                     <tr>
-                        <th class="text-center">No</th>
-                        <th class="text-center">Kode Buku</th>
-                        <th class="text-center">Judul Buku</th>
-                        <th class="text-center">Pengarang</th>
-                        <th class="text-center">Status</th>
+                        <th class="text-center" width="5%">No</th>
+                        <th class="text-center" width="15%">Kode Buku</th>
+                        <th class="text-center" width="25%">Judul Buku</th>
+                        <th class="text-center" width="20%">Pengarang</th>
+                        <th class="text-center" width="15%">Kategori</th>
+                        <th class="text-center" width="10%">Status</th>
                         @auth
                             @if(auth()->user()->level === 'admin')
-                        <th class="text-center">Aksi</th>
+                                <th class="text-center" width="10%">Aksi</th>
                             @endif
                         @endauth
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($data as $d)
+                    @forelse($data as $d)
                     <tr>
-                        <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center">{{ $d->kode_buku }}</td>
-                        <td class="text-center">{{ $d->judul_buku }}</td>
-                        <td class="text-center">{{ $d->pengarang ?? '-' }}</td>
-                        <td class="text-center">
-                            <span class="badge badge-{{ $d->status == 'Ada' ? 'success' : 'secondary' }}">
+                        <td class="text-center align-middle">{{ $loop->iteration }}</td>
+                        <td class="text-center align-middle">{{ $d->kode_buku }}</td>
+                        <td class="align-middle">{{ $d->judul_buku }}</td>
+                        <td class="align-middle">{{ $d->pengarang ?? '-' }}</td>
+                        <td class="text-center align-middle">{{ $d->kategori ?? '-' }}</td>
+                        <td class="text-center align-middle">
+                            <span class="badge badge-{{ $d->status == 'Ada' ? 'success' : ($d->status == 'Dipinjam' ? 'warning' : 'danger') }}">
                                 {{ $d->status }}
                             </span>
                         </td>
                         @auth
                             @if(auth()->user()->level === 'admin')
-                        <td class="text-center">
+                        <td class="text-center align-middle">
                             <button type="button" class="btn btn-success btn-sm" title="Edit data" data-toggle="modal" data-target="#edit{{ $d->id }}"><i class="fa fa-edit"></i></button>
                             <button type="button" class="btn btn-info btn-sm" title="Detail data" data-toggle="modal" data-target="#detail{{ $d->id }}"><i class="fa fa-eye"></i></button>
                             <button type="button" class="btn btn-danger btn-sm" title="Hapus data" data-toggle="modal" data-target="#hapus{{ $d->id }}"><i class="fa fa-trash"></i></button>
@@ -128,15 +184,82 @@
                             @endif
                         @endauth
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fa fa-info-circle"></i> Tidak ada data buku
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
+        </div>
+
+    </div>
+</div>
+
+{{-- MODAL FILTER CETAK --}}
+<div class="modal fade" id="filterCetak" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="GET" action="{{ route('buku.cetak') }}" target="_blank">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-print"></i> Filter Data untuk Cetak</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <small><i class="fa fa-info-circle"></i> Pilih filter untuk mencetak data sesuai kriteria. Kosongkan untuk cetak semua data.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Pencarian</label>
+                        <input type="text" class="form-control" name="search" placeholder="Cari judul, kode, atau pengarang...">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control" name="status">
+                            <option value="">Semua</option>
+                            <option value="Ada">Ada</option>
+                            <option value="Dipinjam">Dipinjam</option>
+                            <option value="Hilang">Hilang</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <input type="text" class="form-control" name="kategori" placeholder="Filter kategori...">
+                    </div>
+                    <div class="form-group">
+                        <label>Tahun Terbit</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="number" class="form-control" name="tahun_dari" placeholder="Dari" min="1900" max="{{ date('Y') }}">
+                                <small class="text-muted">Dari</small>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="number" class="form-control" name="tahun_sampai" placeholder="Sampai" min="1900" max="{{ date('Y') }}">
+                                <small class="text-muted">Sampai</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                        <i class="fa fa-times"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fa fa-print"></i> Cetak
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modals Section -->
+{{-- MODAL UNTUK SETIAP DATA --}}
 @foreach($data as $d)
+
 <!-- Modal Detail -->
 <div class="modal fade" id="detail{{ $d->id }}" tabindex="-1" aria-labelledby="detailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -198,7 +321,7 @@
                         <td><strong>Status</strong></td>
                         <td>:</td>
                         <td>
-                            <span class="badge badge-{{ $d->status == 'Ada' ? 'success' : 'secondary' }}">
+                            <span class="badge badge-{{ $d->status == 'Ada' ? 'success' : ($d->status == 'Dipinjam' ? 'warning' : 'danger') }}">
                                 {{ $d->status }}
                             </span>
                         </td>
@@ -230,7 +353,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Kode Buku</label>
-                                <input type="text" value="{{ $d->kode_buku }}" class="form-control" name="kode_buku" readonly style="background-color: #e9ecef;">
+                                <input type="text" value="{{ $d->kode_buku }}" class="form-control" name="kode_buku" readonly style="background-color: #414448;">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -379,6 +502,7 @@
         </div>
     </div>
 </div>
+
 @endforeach
 
 <!-- Modal Tambah -->
@@ -398,7 +522,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Kode Buku</label>
-                                <input type="text" class="form-control" name="kode_buku" value="{{ $nextKodeBuku ?? '' }}" readonly style="background-color: #e9ecef;">
+                                <input type="text" class="form-control" name="kode_buku" value="{{ $nextKodeBuku ?? '' }}" readonly style="background-color: #48515a;">
                                 <small class="form-text text-muted">
                                     <i class="fa fa-info-circle"></i> Kode buku otomatis di-generate
                                 </small>
@@ -508,13 +632,19 @@
     </div>
 </div>
 
-{{-- Script untuk membuka kembali modal jika ada error --}}
-@if($errors->any() && session('modal'))
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        $('#{{ session("modal") }}').modal('show');
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            }, 3000);
+        });
     });
 </script>
-@endif
 
 @endsection

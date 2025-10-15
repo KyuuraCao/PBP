@@ -123,20 +123,6 @@
             </a>
           </li>
           
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="fas fa-truck nav-icon"></i>
-              <p>Shipping</p>
-            </a>
-          </li>
-          
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="fas fa-boxes nav-icon"></i>
-              <p>Inventory</p>
-            </a>
-          </li>
-          
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

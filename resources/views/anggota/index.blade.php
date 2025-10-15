@@ -200,7 +200,6 @@
     </div>
 </div>
 
-{{-- SEMUA MODAL EDIT, HAPUS, DAN DETAIL UNTUK SETIAP DATA --}}
 @foreach($data as $d)
 
 <!-- Modal Edit -->
@@ -442,12 +441,6 @@
                             <tr>
                                 <th>Jenis Kelamin</th>
                                 <td>: {{ $d->jenis_kelamin ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Tempat, Tanggal Lahir</th>
-                                <td>: {{ $d->tempat_lahir ?? '-' }}, 
-                                    {{ $d->tanggal_lahir ? \Carbon\Carbon::parse($d->tanggal_lahir)->format('d/m/Y') : '-' }}
-                                </td>
                             </tr>
                             <tr>
                                 <th>Alamat</th>

@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/anggota/excel', [Canggota::class, 'excel'])->name('anggota.excel');
     Route::get('/anggota/kartu/{id}', [Canggota::class, 'cetakKartu'])->name('anggota.kartu');
 
+    
 
 
     Route::prefix('buku')->group(function () {

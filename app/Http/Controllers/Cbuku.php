@@ -7,54 +7,145 @@ use App\Models\Mbuku;
 
 class Cbuku extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Mbuku::all();
+        // Query builder dengan filter
+        $query = Mbuku::query();
+
+        // Filter berdasarkan pencarian (judul, kode buku, pengarang)
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('kode_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('pengarang', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter berdasarkan tahun terbit (dari - sampai)
+        if ($request->filled('tahun_dari') && $request->filled('tahun_sampai')) {
+            $query->whereBetween('tahun_terbit', [$request->tahun_dari, $request->tahun_sampai]);
+        }
+
+        // Urutkan berdasarkan kode buku terbaru
+        $query->orderBy('kode_buku', 'DESC');
+
+        $data = $query->get();
         $nextKodeBuku = $this->generateKodeBuku();
+        
         return view('buku.index', compact('data', 'nextKodeBuku'));
     }
 
     private function generateKodeBuku()
     {
-        // Format: 900-25090001, 900-25090002, dst
-        $prefix = date('y'); // 2 digit tahun (contoh: 25 untuk 2025)
-        $month = date('m'); // 2 digit bulan
+        $prefix = date('y');
+        $month = date('m');
         
-        // Cari kode buku terakhir dengan prefix yang sama
         $lastBuku = Mbuku::where('kode_buku', 'LIKE', '%-' . $prefix . $month . '%')
                          ->orderBy('kode_buku', 'desc')
                          ->first();
         
         if ($lastBuku) {
-            // Ambil 4 digit terakhir dan tambah 1
             $lastNumber = intval(substr($lastBuku->kode_buku, -4));
             $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
         } else {
             $newNumber = '0001';
         }
         
-        // Generate nomor kategori/prefix (contoh: 900 untuk buku umum)
-        // Anda bisa sesuaikan dengan kategori buku
         $categoryPrefix = '900';
         
         return $categoryPrefix . '-' . $prefix . $month . $newNumber;
     }
 
-            public function cetak()
-        {
-            $buku = Mbuku::get();
-            return view('buku.cetak', compact('buku'));
+    public function cetak(Request $request)
+    {
+        // Query dengan SEMUA filter untuk cetak
+        $query = Mbuku::query();
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('kode_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('pengarang', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
-        public function excel()
-        {
-            header("Content-type: application/vnd-ms-excel");
-            header('Content-Disposition: attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"');
-            header('Cache-Control: max-age=0');
-
-            $buku = Mbuku::get();
-            return view('buku.excel', compact('buku'));
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
+
+        // Filter kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter tahun terbit
+        if ($request->filled('tahun_dari') && $request->filled('tahun_sampai')) {
+            $query->whereBetween('tahun_terbit', [$request->tahun_dari, $request->tahun_sampai]);
+        }
+
+        $buku = $query->orderBy('kode_buku', 'DESC')->get();
+        
+        // Kirim info filter ke view
+        $filterInfo = [
+            'search' => $request->search,
+            'status' => $request->status,
+            'kategori' => $request->kategori,
+            'tahun_dari' => $request->tahun_dari,
+            'tahun_sampai' => $request->tahun_sampai,
+        ];
+        
+        return view('buku.cetak', compact('buku', 'filterInfo'));
+    }
+
+    public function excel(Request $request)
+    {
+        header("Content-type: application/vnd-ms-excel");
+        header('Content-Disposition: attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"');
+        header('Cache-Control: max-age=0');
+
+        // Query dengan SEMUA filter untuk export
+        $query = Mbuku::query();
+
+        // Filter pencarian
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('kode_buku', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('pengarang', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        // Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter tahun terbit
+        if ($request->filled('tahun_dari') && $request->filled('tahun_sampai')) {
+            $query->whereBetween('tahun_terbit', [$request->tahun_dari, $request->tahun_sampai]);
+        }
+
+        $buku = $query->orderBy('kode_buku', 'DESC')->get();
+        
+        return view('buku.excel', compact('buku'));
+    }
 
     public function save(Request $request)
     {

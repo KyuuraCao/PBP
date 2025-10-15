@@ -23,7 +23,7 @@
         
         .kartu-container {
             width: 600px;
-            background: linear-gradient(135deg, #777272 0%, #897c7c 100%);
+            background: linear-gradient(135deg, #53798d 0%, #897c7c 100%);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
