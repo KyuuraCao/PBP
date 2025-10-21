@@ -122,6 +122,15 @@
               <p>Kategori</p>
             </a>
           </li>
+
+          <li class="nav-item">
+            <a href="{{ route('rak.index')}}" class="nav-link">
+              <i class="fas fa-tags nav-icon"></i>
+              <p>Rak Buku</p>
+            </a>
+          </li>
+
+
           
         </ul>
       </nav>

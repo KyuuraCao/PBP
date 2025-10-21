@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Mkategori;
+use App\Models\Mbuku;
 
 class Ckategori extends Controller
 {
@@ -81,22 +82,21 @@ class Ckategori extends Controller
         ]);
     }
 
+    public function cetak()
+    {
+        $kategori = Mkategori::orderBy('kode', 'asc')->get();
+        return view('kategori.cetak', compact('kategori'));
+    }
 
-            public function cetak()
-        {
-            $kategori = Mkategori::get();
-            return view('kategori.cetak', compact('kategori'));
-        }
+    public function excel()
+    {
+        header("Content-type: application/vnd-ms-excel");
+        header('Content-Disposition: attachment;filename="data_kategori_' . date('Y-m-d_His') . '.xls"');
+        header('Cache-Control: max-age=0');
 
-        public function excel()
-        {
-            header("Content-type: application/vnd-ms-excel");
-            header('Content-Disposition: attachment;filename="data_kategori_' . date('Y-m-d_His') . '.xls"');
-            header('Cache-Control: max-age=0');
-
-            $kategori = Mkategori::get();
-            return view('kategori.excel', compact('kategori'));
-        }
+        $kategori = Mkategori::orderBy('kode', 'asc')->get();
+        return view('kategori.excel', compact('kategori'));
+    }
 
     public function destroy($id)
     {
@@ -111,8 +111,8 @@ class Ckategori extends Controller
         try {
             $kategori = Mkategori::findOrFail($id);
             
-            // Cek apakah kategori masih digunakan di tabel buku
-            $bukuCount = \App\Models\Mbuku::where('kategori', $kategori->nama_kategori)->count();
+            // FIXED: Check using kategori_id instead of kategori field
+            $bukuCount = Mbuku::where('kategori_id', $id)->count();
             
             if ($bukuCount > 0) {
                 return redirect()->route('kategori.index')->with('status', [

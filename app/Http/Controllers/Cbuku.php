@@ -4,20 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Mbuku;
+use App\Models\Mkategori;
+use App\Models\Mrak;
 
 class Cbuku extends Controller
 {
-    public function index(Request $request)
+        public function index(Request $request)
     {
-        // Query builder dengan filter
-        $query = Mbuku::query();
+        // FIXED: Proper eager loading with correct relationships
+        $query = Mbuku::with(['kategori', 'rak']);
 
         // Filter berdasarkan pencarian (judul, kode buku, pengarang)
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
-                  ->orWhere('kode_buku', 'LIKE', '%' . $request->search . '%')
-                  ->orWhere('pengarang', 'LIKE', '%' . $request->search . '%');
+                ->orWhere('kode_buku', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('pengarang', 'LIKE', '%' . $request->search . '%');
             });
         }
 
@@ -26,9 +28,14 @@ class Cbuku extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter berdasarkan kategori
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+        // Filter berdasarkan kategori_id
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
+        }
+
+        // Filter berdasarkan rak_id
+        if ($request->filled('rak_id')) {
+            $query->where('rak_id', $request->rak_id);
         }
 
         // Filter berdasarkan tahun terbit (dari - sampai)
@@ -40,17 +47,20 @@ class Cbuku extends Controller
         $query->orderBy('kode_buku', 'DESC');
 
         $data = $query->get();
-        $nextKodeBuku = $this->generateKodeBuku();
         
-        return view('buku.index', compact('data', 'nextKodeBuku'));
+        // Ambil data kategori dan rak untuk dropdown
+        $kategoriList = Mkategori::orderBy('kode', 'ASC')->get();
+        $rakList = Mrak::orderBy('kode_rak', 'ASC')->get();
+        
+        return view('buku.index', compact('data', 'kategoriList', 'rakList'));
     }
 
-    private function generateKodeBuku()
+    private function generateKodeBuku($kategoriKode = '900')
     {
         $prefix = date('y');
         $month = date('m');
         
-        $lastBuku = Mbuku::where('kode_buku', 'LIKE', '%-' . $prefix . $month . '%')
+        $lastBuku = Mbuku::where('kode_buku', 'LIKE', $kategoriKode . '-' . $prefix . $month . '%')
                          ->orderBy('kode_buku', 'desc')
                          ->first();
         
@@ -61,17 +71,33 @@ class Cbuku extends Controller
             $newNumber = '0001';
         }
         
-        $categoryPrefix = '900';
+        return $kategoriKode . '-' . $prefix . $month . $newNumber;
+    }
+
+    // Method untuk generate kode buku via AJAX
+    public function generateKode(Request $request)
+    {
+        $kategoriId = $request->kategori_id;
+        $kategoriKode = '900'; // default
         
-        return $categoryPrefix . '-' . $prefix . $month . $newNumber;
+        if ($kategoriId) {
+            $kategori = Mkategori::find($kategoriId);
+            if ($kategori) {
+                $kategoriKode = $kategori->kode;
+            }
+        }
+        
+        $kodeBuku = $this->generateKodeBuku($kategoriKode);
+        
+        return response()->json([
+            'kode_buku' => $kodeBuku
+        ]);
     }
 
     public function cetak(Request $request)
     {
-        // Query dengan SEMUA filter untuk cetak
-        $query = Mbuku::query();
+        $query = Mbuku::with(['kategori', 'rak']);
 
-        // Filter pencarian
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
@@ -80,33 +106,25 @@ class Cbuku extends Controller
             });
         }
 
-        // Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter kategori
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
         }
 
-        // Filter tahun terbit
+        if ($request->filled('rak_id')) {
+            $query->where('rak_id', $request->rak_id);
+        }
+
         if ($request->filled('tahun_dari') && $request->filled('tahun_sampai')) {
             $query->whereBetween('tahun_terbit', [$request->tahun_dari, $request->tahun_sampai]);
         }
 
         $buku = $query->orderBy('kode_buku', 'DESC')->get();
         
-        // Kirim info filter ke view
-        $filterInfo = [
-            'search' => $request->search,
-            'status' => $request->status,
-            'kategori' => $request->kategori,
-            'tahun_dari' => $request->tahun_dari,
-            'tahun_sampai' => $request->tahun_sampai,
-        ];
-        
-        return view('buku.cetak', compact('buku', 'filterInfo'));
+        return view('buku.cetak', compact('buku'));
     }
 
     public function excel(Request $request)
@@ -115,10 +133,8 @@ class Cbuku extends Controller
         header('Content-Disposition: attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"');
         header('Cache-Control: max-age=0');
 
-        // Query dengan SEMUA filter untuk export
-        $query = Mbuku::query();
+        $query = Mbuku::with(['kategori', 'rak']);
 
-        // Filter pencarian
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('judul_buku', 'LIKE', '%' . $request->search . '%')
@@ -127,17 +143,18 @@ class Cbuku extends Controller
             });
         }
 
-        // Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter kategori
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
         }
 
-        // Filter tahun terbit
+        if ($request->filled('rak_id')) {
+            $query->where('rak_id', $request->rak_id);
+        }
+
         if ($request->filled('tahun_dari') && $request->filled('tahun_sampai')) {
             $query->whereBetween('tahun_terbit', [$request->tahun_dari, $request->tahun_sampai]);
         }
@@ -156,7 +173,6 @@ class Cbuku extends Controller
                 'icon' => 'error'
             ]);
         }
-
         $request->validate([
             'kode_buku' => 'required|unique:buku,kode_buku',
             'judul_buku' => 'required|string|max:255',
@@ -164,7 +180,9 @@ class Cbuku extends Controller
             'penerbit' => 'nullable|string|max:255',
             'tahun_terbit' => 'nullable|integer|min:1900|max:' . date('Y'),
             'isbn' => 'nullable|string|max:50',
-            'kategori' => 'nullable|string|max:100',
+            // FIXED: Use correct table name
+            'kategori_id' => 'nullable|exists:kategori_buku,id',
+            'rak_id' => 'nullable|exists:rak,id',
             'jumlah_halaman' => 'nullable|integer|min:1',
             'stok' => 'nullable|integer|min:0',
             'status' => 'required|in:Ada,Dipinjam,Hilang'
@@ -177,7 +195,8 @@ class Cbuku extends Controller
             'penerbit' => $request->penerbit,
             'tahun_terbit' => $request->tahun_terbit,
             'isbn' => $request->isbn,
-            'kategori' => $request->kategori,
+            'kategori_id' => $request->kategori_id,
+            'rak_id' => $request->rak_id,
             'jumlah_halaman' => $request->jumlah_halaman,
             'stok' => $request->stok ?? 1,
             'status' => $request->status ?? 'Ada'
@@ -200,16 +219,20 @@ class Cbuku extends Controller
             ]);
         }
 
-        $buku = Mbuku::findOrFail($id);
-        
-        $request->validate([
+
+            $buku = Mbuku::findOrFail($id);
+
+
+            $request->validate([
             'kode_buku' => 'required|unique:buku,kode_buku,' . $id,
             'judul_buku' => 'required|string|max:255',
             'pengarang' => 'nullable|string|max:255',
             'penerbit' => 'nullable|string|max:255',
             'tahun_terbit' => 'nullable|integer|min:1900|max:' . date('Y'),
             'isbn' => 'nullable|string|max:50',
-            'kategori' => 'nullable|string|max:100',
+            // FIXED: Use correct table name
+            'kategori_id' => 'nullable|exists:kategori_buku,id',
+            'rak_id' => 'nullable|exists:rak,id',
             'jumlah_halaman' => 'nullable|integer|min:1',
             'stok' => 'nullable|integer|min:0',
             'status' => 'required|in:Ada,Dipinjam,Hilang'
@@ -222,7 +245,8 @@ class Cbuku extends Controller
             'penerbit' => $request->penerbit,
             'tahun_terbit' => $request->tahun_terbit,
             'isbn' => $request->isbn,
-            'kategori' => $request->kategori,
+            'kategori_id' => $request->kategori_id,
+            'rak_id' => $request->rak_id,
             'jumlah_halaman' => $request->jumlah_halaman,
             'stok' => $request->stok ?? 0,
             'status' => $request->status ?? 'Ada'

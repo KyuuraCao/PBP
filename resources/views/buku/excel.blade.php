@@ -79,7 +79,7 @@
                 <td>{{ $d->penerbit ?? '-' }}</td>
                 <td class="text-center">{{ $d->tahun_terbit ?? '-' }}</td>
                 <td class="text-center">{{ $d->isbn ?? '-' }}</td>
-                <td>{{ $d->kategori ?? '-' }}</td>
+                <td>{{ $d->kategori ? $d->kategori->nama_kategori : '-' }}</td>
                 <td class="text-center">{{ $d->jumlah_halaman ?? '-' }}</td>
                 <td class="text-center">{{ $d->stok ?? '0' }}</td>
                 <td class="text-center status-{{ strtolower($d->status) }}">

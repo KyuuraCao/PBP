@@ -7,6 +7,7 @@ use App\Http\Controllers\Csiswa;
 use App\Http\Controllers\Canggota;
 use App\Http\Controllers\Cbuku;
 use App\Http\Controllers\Ckategori;
+use App\Http\Controllers\Crak;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [Clogin::class, 'index'])->name('login');
@@ -30,29 +31,34 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/anggota/excel', [Canggota::class, 'excel'])->name('anggota.excel');
     Route::get('/anggota/kartu/{id}', [Canggota::class, 'cetakKartu'])->name('anggota.kartu');
 
-    
-
-
+    // Route Buku
     Route::prefix('buku')->group(function () {
-    Route::get('/', [Cbuku::class, 'index'])->name('buku.index');
-    Route::post('/save', [Cbuku::class, 'save'])->name('buku.save');
-    Route::put('/update/{id}', [Cbuku::class, 'update'])->name('buku.update');
-    Route::delete('/destroy/{id}', [Cbuku::class, 'destroy'])->name('buku.destroy');
-    Route::get('/buku/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
-    Route::get('/buku/excel', [Cbuku::class, 'excel'])->name('buku.excel');
+        Route::get('/', [Cbuku::class, 'index'])->name('buku.index');
+        Route::post('/save', [Cbuku::class, 'save'])->name('buku.save');
+        Route::put('/update/{id}', [Cbuku::class, 'update'])->name('buku.update');
+        Route::delete('/destroy/{id}', [Cbuku::class, 'destroy'])->name('buku.destroy');
+        Route::get('/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
+        Route::get('/buku/generate-kode', [Cbuku::class, 'generateKode'])->name('buku.generateKode');
+        Route::get('/excel', [Cbuku::class, 'excel'])->name('buku.excel');
     });
 
-    Route::prefix('kategori')->middleware(['auth'])->group(function () {
-    Route::get('/', [Ckategori::class, 'index'])->name('kategori.index');
-    Route::post('/save', [Ckategori::class, 'save'])->name('kategori.save');
-    Route::put('/update/{id}', [Ckategori::class, 'update'])->name('kategori.update');
-    Route::delete('/destroy/{id}', [Ckategori::class, 'destroy'])->name('kategori.destroy');
-    Route::get('/kategori/cetak', [Ckategori::class, 'cetak'])->name('kategori.cetak');
-    Route::get('/kategori/excel', [Ckategori::class, 'excel'])->name('kategori.excel');
-
-
+    // Route Kategori
+    Route::prefix('kategori')->group(function () {
+        Route::get('/', [Ckategori::class, 'index'])->name('kategori.index');
+        Route::post('/save', [Ckategori::class, 'save'])->name('kategori.save');
+        Route::put('/update/{id}', [Ckategori::class, 'update'])->name('kategori.update');
+        Route::delete('/destroy/{id}', [Ckategori::class, 'destroy'])->name('kategori.destroy');
+        Route::get('/cetak', [Ckategori::class, 'cetak'])->name('kategori.cetak');
+        Route::get('/excel', [Ckategori::class, 'excel'])->name('kategori.excel');
     });
-    
+
+    // Route Rak Buku
+    Route::prefix('rak')->group(function () {
+        Route::get('/', [Crak::class, 'index'])->name('rak.index');
+        Route::post('/save', [Crak::class, 'save'])->name('rak.save');
+        Route::put('/update/{id}', [Crak::class, 'update'])->name('rak.update');
+        Route::delete('/destroy/{id}', [Crak::class, 'destroy'])->name('rak.destroy');
+    });
 
     Route::post('/logout', function () {
         Auth::logout();

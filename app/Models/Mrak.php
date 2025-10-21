@@ -5,20 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Mkategori extends Model
+class Mrak extends Model
 {
     use HasFactory;
-
-    protected $table = 'kategori_buku';
+    
+    protected $table = 'rak';
     protected $primaryKey = 'id';
     
     protected $fillable = [
-        'kode', 'nama_kategori', 'keterangan'
+        'kode_rak',
+        'keterangan'
     ];
 
-    // Relationship dengan buku
+    // Relasi ke buku
     public function buku()
     {
-        return $this->hasMany(Mbuku::class, 'kategori_id', 'id');
+        return $this->hasMany(Mbuku::class, 'rak_id', 'id');
     }
 }
