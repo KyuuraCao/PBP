@@ -8,6 +8,8 @@ use App\Http\Controllers\Canggota;
 use App\Http\Controllers\Cbuku;
 use App\Http\Controllers\Ckategori;
 use App\Http\Controllers\Crak;
+use App\Http\Controllers\Cpinjam;
+
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [Clogin::class, 'index'])->name('login');
@@ -31,15 +33,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/anggota/excel', [Canggota::class, 'excel'])->name('anggota.excel');
     Route::get('/anggota/kartu/{id}', [Canggota::class, 'cetakKartu'])->name('anggota.kartu');
 
-    // Route Buku
+    // Route Buku - FIXED
     Route::prefix('buku')->group(function () {
         Route::get('/', [Cbuku::class, 'index'])->name('buku.index');
+        Route::get('/generate-kode', [Cbuku::class, 'generateKode'])->name('buku.generateKode'); // FIXED: Hapus /buku/
+        Route::get('/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
+        Route::get('/excel', [Cbuku::class, 'excel'])->name('buku.excel');
         Route::post('/save', [Cbuku::class, 'save'])->name('buku.save');
         Route::put('/update/{id}', [Cbuku::class, 'update'])->name('buku.update');
+        Route::get('/test-excel', function() {
+        return response('Test Excel')
+        ->header('Content-Type', 'application/vnd.ms-excel')
+        ->header('Content-Disposition', 'attachment;filename="test.xls"');
+});
         Route::delete('/destroy/{id}', [Cbuku::class, 'destroy'])->name('buku.destroy');
-        Route::get('/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
-        Route::get('/buku/generate-kode', [Cbuku::class, 'generateKode'])->name('buku.generateKode');
-        Route::get('/excel', [Cbuku::class, 'excel'])->name('buku.excel');
     });
 
     // Route Kategori
@@ -52,6 +59,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/excel', [Ckategori::class, 'excel'])->name('kategori.excel');
     });
 
+    // Route Peminjaman
+        Route::prefix('pinjam')->group(function () {
+            Route::get('/', [Cpinjam::class, 'index'])->name('pinjam.index');
+            Route::get('/add', [Cpinjam::class, 'add'])->name('pinjam.add');
+            Route::post('/save', [Cpinjam::class, 'save'])->name('pinjam.save');
+            Route::get('/view/{id}', [Cpinjam::class, 'view'])->name('pinjam.view');
+            Route::put('/update/{id}', [Cpinjam::class, 'update'])->name('pinjam.update'); // ADD THIS
+            Route::delete('/destroy/{id}', [Cpinjam::class, 'destroy'])->name('pinjam.destroy'); // ADD THIS
+            Route::post('/kembali/{id_pinjam}/{id_buku}', [Cpinjam::class, 'kembali'])->name('pinjam.kembali');
+        });
     // Route Rak Buku
     Route::prefix('rak')->group(function () {
         Route::get('/', [Crak::class, 'index'])->name('rak.index');

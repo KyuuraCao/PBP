@@ -128,11 +128,8 @@ class Cbuku extends Controller
     }
 
     public function excel(Request $request)
-    {
-        header("Content-type: application/vnd-ms-excel");
-        header('Content-Disposition: attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"');
-        header('Cache-Control: max-age=0');
-
+{
+    try {
         $query = Mbuku::with(['kategori', 'rak']);
 
         if ($request->filled('search')) {
@@ -161,8 +158,21 @@ class Cbuku extends Controller
 
         $buku = $query->orderBy('kode_buku', 'DESC')->get();
         
-        return view('buku.excel', compact('buku'));
+        // Set headers untuk Excel
+        return response()->view('buku.excel', compact('buku'))
+            ->header('Content-Type', 'application/vnd.ms-excel')
+            ->header('Content-Disposition', 'attachment;filename="data_buku_' . date('Y-m-d_His') . '.xls"')
+            ->header('Cache-Control', 'max-age=0');
+            
+    } catch (\Exception $e) {
+        // Tampilkan error untuk debugging
+        return response()->json([
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ], 500);
     }
+}
 
     public function save(Request $request)
     {

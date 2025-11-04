@@ -18,13 +18,11 @@ class Mbuku extends Model
         'jumlah_halaman', 'stok', 'status'
     ];
 
-    // FIXED: Relationship dengan kategori
     public function kategori()
     {
         return $this->belongsTo(Mkategori::class, 'kategori_id', 'id');
     }
 
-    // Relationship dengan rak
     public function rak()
     {
         return $this->belongsTo(Mrak::class, 'rak_id', 'id');

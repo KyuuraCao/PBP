@@ -269,7 +269,7 @@ class Canggota extends Controller
     }
 
             public function cetakKartu($id)
-            {
+            {  
                 $anggota = Manggota::findOrFail($id);
                 return view('anggota.cetak_kartu', compact('anggota'));
             }

@@ -35,19 +35,19 @@
         thead th {
             mso-pattern: black none;
         }
-        .status-ada {
-            background-color: #d4edda;
-            color: #155724;
+        .status-dipinjam {
+            background-color: #ffc107;
+            color: #000000;
             font-weight: bold;
         }
-        .status-dipinjam {
-            background-color: #fff3cd;
-            color: #856404;
+        .status-ada {
+            background-color: #28a745;
+            color: #ffffff;
             font-weight: bold;
         }
         .status-hilang {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #dc3545;
+            color: #ffffff;
             font-weight: bold;
         }
     </style>
@@ -56,15 +56,12 @@
     <table>
         <thead>
             <tr>
-                <th width="5%">No</th>
-                <th width="12%">Kode Buku</th>
-                <th width="25%">Judul Buku</th>
-                <th width="15%">Pengarang</th>
-                <th width="15%">Penerbit</th>
-                <th width="8%">Tahun Terbit</th>
-                <th width="10%">ISBN</th>
-                <th width="10%">Kategori</th>
-                <th width="8%">Jumlah Halaman</th>
+                <th width="4%">No</th>
+                <th width="10%">Kode Buku</th>
+                <th width="20%">Judul Buku</th>
+                <th width="12%">Pengarang</th>
+                <th width="15%">Kategori</th>
+                <th width="10%">Rak</th>
                 <th width="6%">Stok</th>
                 <th width="8%">Status</th>
             </tr>
@@ -76,25 +73,38 @@
                 <td class="text-center">{{ $d->kode_buku }}</td>
                 <td>{{ $d->judul_buku }}</td>
                 <td>{{ $d->pengarang ?? '-' }}</td>
-                <td>{{ $d->penerbit ?? '-' }}</td>
-                <td class="text-center">{{ $d->tahun_terbit ?? '-' }}</td>
-                <td class="text-center">{{ $d->isbn ?? '-' }}</td>
-                <td>{{ $d->kategori ? $d->kategori->nama_kategori : '-' }}</td>
-                <td class="text-center">{{ $d->jumlah_halaman ?? '-' }}</td>
+                <td>
+                    @if(isset($d->kategori) && is_object($d->kategori))
+                        {{ $d->kategori->nama_kategori ?? '-' }}
+                    @elseif(isset($d->kategori_id))
+                        {{ \App\Models\MKategori::find($d->kategori_id)->nama_kategori ?? '-' }}
+                    @else
+                        -
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if(isset($d->rak) && is_object($d->rak))
+                        {{ $d->rak->kode_rak ?? '-' }}
+                    @elseif(isset($d->rak_id))
+                        {{ \App\Models\Rak::find($d->rak_id)->kode_rak ?? '-' }}
+                    @else
+                        -
+                    @endif
+                </td>
                 <td class="text-center">{{ $d->stok ?? '0' }}</td>
-                <td class="text-center status-{{ strtolower($d->status) }}">
-                    {{ $d->status }}
+                <td class="text-center status-{{ strtolower($d->status ?? 'ada') }}">
+                    {{ $d->status ?? 'Ada' }}
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="11" class="text-center">Data tidak ditemukan</td>
+                <td colspan="8" class="text-center">Data tidak ditemukan</td>
             </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="9" style="text-align: right; font-weight: bold; background-color: #f8f9fa;">Total Buku:</td>
+                <td colspan="6" style="text-align: right; font-weight: bold; background-color: #f8f9fa;">Total Buku:</td>
                 <td class="text-center" style="font-weight: bold; background-color: #f8f9fa;">{{ $buku->sum('stok') ?? 0 }}</td>
                 <td style="background-color: #f8f9fa;"></td>
             </tr>
