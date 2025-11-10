@@ -73,7 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('rak')->group(function () {
         Route::get('/', [Crak::class, 'index'])->name('rak.index');
         Route::post('/save', [Crak::class, 'save'])->name('rak.save');
-        Route::put('/update/{id}', [Crak::class, 'update'])->name('rak.update');
+        Route::put('/update/{id}', [Crak::class, 'update'])->name('rak.update'); 
         Route::delete('/destroy/{id}', [Crak::class, 'destroy'])->name('rak.destroy');
     });
 
