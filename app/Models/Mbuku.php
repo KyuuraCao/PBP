@@ -27,4 +27,10 @@ class Mbuku extends Model
     {
         return $this->belongsTo(Mrak::class, 'rak_id', 'id');
     }
+
+    public function posisi()
+    {
+        return $this->belongsTo(Mrak::class, 'rak_id', 'id');
+    }
+
 }

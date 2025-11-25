@@ -94,6 +94,27 @@ class Cbuku extends Controller
         ]);
     }
 
+    public function buku_api() 
+    {
+        $buku = Mbuku::all();
+        return response()->json($buku);
+    }
+        
+
+    public function api3()
+    {
+        $buku = Mbuku::with(['kategori', 'posisi'])->get();
+        return response()->json([
+            'status' => true,
+            'data' => $buku
+        ], 200);
+    }
+
+    public function apiTableView()
+    {
+        return view('buku.api_table');
+    }
+
     public function cetak(Request $request)
     {
         $query = Mbuku::with(['kategori', 'rak']);

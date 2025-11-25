@@ -34,19 +34,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/anggota/kartu/{id}', [Canggota::class, 'cetakKartu'])->name('anggota.kartu');
 
     // Route Buku - FIXED
-    Route::prefix('buku')->group(function () {
-        Route::get('/', [Cbuku::class, 'index'])->name('buku.index');
-        Route::get('/generate-kode', [Cbuku::class, 'generateKode'])->name('buku.generateKode'); // FIXED: Hapus /buku/
-        Route::get('/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
-        Route::get('/excel', [Cbuku::class, 'excel'])->name('buku.excel');
-        Route::post('/save', [Cbuku::class, 'save'])->name('buku.save');
-        Route::put('/update/{id}', [Cbuku::class, 'update'])->name('buku.update');
-        Route::get('/test-excel', function() {
+Route::prefix('buku')->group(function () {
+    Route::get('/', [Cbuku::class, 'index'])->name('buku.index');
+    Route::get('/generate-kode', [Cbuku::class, 'generateKode'])->name('buku.generateKode');
+    Route::get('/cetak', [Cbuku::class, 'cetak'])->name('buku.cetak');
+    Route::get('/excel', [Cbuku::class, 'excel'])->name('buku.excel');
+    Route::post('/save', [Cbuku::class, 'save'])->name('buku.save');
+    Route::put('/update/{id}', [Cbuku::class, 'update'])->name('buku.update');
+    Route::get('/test-excel', function() {
         return response('Test Excel')
         ->header('Content-Type', 'application/vnd.ms-excel')
         ->header('Content-Disposition', 'attachment;filename="test.xls"');
-});
-        Route::delete('/destroy/{id}', [Cbuku::class, 'destroy'])->name('buku.destroy');
+    });
+    Route::delete('/destroy/{id}', [Cbuku::class, 'destroy'])->name('buku.destroy');
+    Route::get('/api-table', [Cbuku::class, 'apiTableView'])->name('buku.api.table');
     });
 
     // Route Kategori
@@ -76,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/update/{id}', [Crak::class, 'update'])->name('rak.update'); 
         Route::delete('/destroy/{id}', [Crak::class, 'destroy'])->name('rak.destroy');
     });
+
 
     Route::post('/logout', function () {
         Auth::logout();

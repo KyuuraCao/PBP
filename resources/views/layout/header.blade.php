@@ -144,6 +144,13 @@
                             </a>
                         </li>
 
+                        <li class="nav-item">
+                            <a href="{{ route('buku.api.table') }}" class="nav-link">
+                                <i class="fas fa-bars nav-icon"></i>
+                                <p>Data Buku API</p>
+                            </a>
+                        </li>
+
 
 
                     </ul>
